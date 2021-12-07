@@ -1,0 +1,42 @@
+group 'test.my'
+version '1.0-SNAPSHOT'
+
+
+allprojects {
+
+
+    apply plugin: 'java'
+    apply plugin: 'scala'
+
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+    }
+
+    dependencies {
+        compile group: 'org.apache.spark', name: 'spark-core_2.11', version: '2.4.3'
+        compile group: 'org.apache.spark', name: 'spark-hive_2.11', version: '2.4.3'
+        compile group: 'org.apache.spark', name: 'spark-sql_2.11', version: '2.4.3'
+        compile 'io.tarantool:spark-tarantool-connector_2.11:1.0.0-SNAPSHOT'
+        compile 'com.fasterxml.jackson.module:jackson-module-scala_2.11:2.11.2'
+
+        testCompile group: 'org.scalatest', name: 'scalatest_2.11', version: '3.2.3'
+
+    }
+
+    task copyToLib( type: Copy ) {
+        into "$buildDir/libs/lib"
+        from configurations.runtime
+    }
+
+
+    jar {
+
+        from {
+            configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+        }
+    }
+}
+
