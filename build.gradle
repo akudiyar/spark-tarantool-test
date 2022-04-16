@@ -7,6 +7,7 @@ allprojects {
 
     apply plugin: 'java'
     apply plugin: 'scala'
+    apply plugin: 'application'
 
 
     repositories {
@@ -16,10 +17,10 @@ allprojects {
     }
 
     dependencies {
-        compile group: 'org.apache.spark', name: 'spark-core_2.11', version: '2.4.3'
-        compile group: 'org.apache.spark', name: 'spark-hive_2.11', version: '2.4.3'
-        compile group: 'org.apache.spark', name: 'spark-sql_2.11', version: '2.4.3'
-        compile 'io.tarantool:spark-tarantool-connector_2.11:1.0.0-SNAPSHOT'
+        compile group: 'org.apache.spark', name: 'spark-core_2.11', version: '2.4.4'
+        compile group: 'org.apache.spark', name: 'spark-hive_2.11', version: '2.4.4'
+        compile group: 'org.apache.spark', name: 'spark-sql_2.11', version: '2.4.4'
+        compile 'io.tarantool:spark-tarantool-connector_2.11:0.3.0'
         compile 'com.fasterxml.jackson.module:jackson-module-scala_2.11:2.11.2'
 
         testCompile group: 'org.scalatest', name: 'scalatest_2.11', version: '3.2.3'
@@ -31,6 +32,9 @@ allprojects {
         from configurations.runtime
     }
 
+    application {
+        mainClass = 'demo.tarantool.TestTarantool' 
+    }
 
     jar {
 
