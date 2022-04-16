@@ -1,4 +1,4 @@
-package ru.eiap.tarantool
+package demo.tarantool
 
 import org.apache.spark.sql.{SaveMode, SparkSession}
 import io.tarantool.driver.api.conditions.Conditions
@@ -19,7 +19,7 @@ object TestTarantool extends App {
     .master("local[1]")
     .config("tarantool.hosts", "127.0.0.1:3301")
     .config("tarantool.username", "admin")
-    .config("tarantool.password", "password")
+    .config("tarantool.password", "testapp-cluster-cookie")
     .enableHiveSupport()
     .getOrCreate()
 
@@ -35,7 +35,7 @@ object TestTarantool extends App {
 
   val startTuple = new DefaultTarantoolTupleFactory(mapper).create(List(1).asJava)
   val cond: Conditions = Conditions
-    .indexGreaterThan("index_id", List(1).asJava)
+    .indexGreaterThan("id", List(1).asJava)
     .withLimit(2)
     .startAfter(startTuple)
   val tuples: Array[TarantoolTuple] = sc.tarantoolSpace("test_space", cond).collect()
@@ -53,27 +53,32 @@ object TestTarantool extends App {
 
   val ds = spark.sql(
     """
-      |select 1 as id, 1 as bucketId, 'Don Quixote' as bookName, 'Miguel de Cervantes' as author, 1605 as year union all
-      |select 2, 1, 'The Great Gatsby', 'F. Scott Fitzgerald', 1925 union all
-      |select 2, 1, 'War and Peace', 'Leo Tolstoy', 1869
+      |select 1 as id, null as bucketId, 'Don Quixote' as bookName, 'Miguel de Cervantes' as author, 1605 as year union all
+      |select 2, null, 'The Great Gatsby', 'F. Scott Fitzgerald', 1925 union all
+      |select 2, null, 'War and Peace', 'Leo Tolstoy', 1869
       |""".stripMargin)
 
 
-  // Write to the space. Different modes are supported
-  ds.write
-    .format("org.apache.spark.sql.tarantool")
-    .mode(SaveMode.Overwrite)
-    .option("tarantool.space", "test_space")
-    .save()
-
-  sc.stop()
-  spark.close()
+  try {
+    // Write to the space. Different modes are supported
+    ds.write
+      .format("org.apache.spark.sql.tarantool")
+      .mode(SaveMode.Overwrite)
+      .option("tarantool.space", "test_space")
+      .save()
+  } finally {
+    // If you don't close the context even in the case of an exception,
+    // it will not be closed automatically, and so the application listeners closing
+    // the Tarantool connections will not be invoked.
+    sc.stop()
+    spark.close()
+  }
 }
 
 case class Book(
-                 id: Int,
-                 bucketId: Int,
-                 bookName: String,
-                 author: String,
-                 year: Int
-               )
+  id: Int,
+  bucketId: Int,
+  bookName: String,
+  author: String,
+  year: Int
+)
